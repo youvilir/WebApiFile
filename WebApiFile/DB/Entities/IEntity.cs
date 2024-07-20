@@ -2,11 +2,11 @@
 {
     public interface IEntity
     {
-        Guid? ID { get; }
+        Guid ID { get; }
 
-        DateTime? Created { get; }
+        DateTime Created { get; set; }
 
-        DateTime? Changed { get; }
+        DateTime Changed { get; set; }
 
         void BeforeInsert();
 

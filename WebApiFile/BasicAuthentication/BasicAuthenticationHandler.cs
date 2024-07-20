@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text.Encodings.Web;
 using System.Text;
+using System.Text.Encodings.Web;
 using WebApiFile.Models;
 using WebApiFile.Services;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Principal;
 
 namespace WebApiFile.BasicAuthentication
 {

@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using WebApiFile.Attributes;
-using WebApiFile.DB.Repositories;
+using WebApiFile.DB;
 using WebApiFile.Enums;
 using WebApiFile.Models;
 using WebApiFile.Services.Email;
@@ -17,22 +18,17 @@ namespace WebApiFile.Controllers
     {
 
         private readonly ILogger<FileController> _logger;
-        private readonly Repository _repository;
         private readonly IEmailService _emailService;
-        private readonly List<DeleteFileModel> _codes;
         private readonly DataContext _dataContext;
 
         public FileController(
             ILogger<FileController> logger, 
-            Repository repository, 
             IEmailService emailService, 
             List<DeleteFileModel> codes,
             DataContext dataContext)
         {
             _logger = logger;
-            _repository = repository;
             _emailService = emailService;
-            _codes = codes;
             _dataContext = dataContext;
         }
 
@@ -76,18 +72,17 @@ namespace WebApiFile.Controllers
                 Content = fileData,
             };
 
-            _repository.Files.Add(data);
-            await _repository.SaveChangesAsync();
+            await _dataContext.Files.AddAsync(data);
+            await _dataContext.SaveChangesAsync();
 
             return Ok();
         }
 
         [Authorize(Role.Developer, Role.Admin)]
         [HttpPost("UploadBase64")]
-        public IActionResult UploadBase64(string base64EncodedData, string fileName)
+        public async Task<IActionResult> UploadBase64(string base64EncodedData, string fileName)
         {
             var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
-
 
             var data = new File()
             {
@@ -99,8 +94,8 @@ namespace WebApiFile.Controllers
                 ContentDescription = String.Empty,
             };
 
-            _repository.Files.Add(data);
-            _repository.SaveChanges();
+            await _dataContext.Files.AddAsync(data);
+            await _dataContext.SaveChangesAsync();
 
             return Ok();
         }
@@ -120,10 +115,11 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.User, Role.Developer, Role.Editor, Role.Admin)]
         [HttpGet("Download")]
-        public IActionResult Download(Guid id)
+        public async Task<IActionResult> Download(Guid id)
         {
-            var file = _repository.Files.Get(id);
-            if (file is null) return BadRequest();
+            var file = await _dataContext.Files.FindAsync(id);
+            if (file is null) 
+                return BadRequest();
 
             var cd = "attachment; filename=\"" + Uri.EscapeDataString(file.Name) + "\"";
             Response.Headers.Add("Content-Disposition", cd);
@@ -144,11 +140,11 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.User, Role.Developer, Role.Editor, Role.Admin)]
-        [HttpGet("GetMetaData")]
+        [HttpGet("MetaData")]
         public async Task<IActionResult> GetMetaData(Guid id)
         {
-            var file = _repository.Files.Get(id);
-            if (file is null) return BadRequest("Файл не найден");
+            var file = await _dataContext.Files.FindAsync(id);
+			if (file is null) return BadRequest("Файл не найден");
 
             return Ok(new FileMetaData()
             {
@@ -177,12 +173,12 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.Editor, Role.Admin)]
         [HttpPut("Change")]
-        public IActionResult Change(Guid id, string newName)
+        public async Task<IActionResult> Change(Guid id, string newName)
         {
             if (newName.Length > 100)
                 return BadRequest("Длинна файла не может быть больше 100 символов");
 
-            var file = _repository.Files.Get(id);
+            var file = await _dataContext.Files.FindAsync(id);
             if (file is null) return BadRequest();
 
             string oldFileName = file.Name;
@@ -195,8 +191,7 @@ namespace WebApiFile.Controllers
 
             file.ContentDescription = file.ContentDescription.Replace(oldFileName, file.Name);
 
-            _repository.Files.Update(file);
-            _repository.SaveChanges();
+            await _dataContext.SaveChangesAsync();
 
             return Ok();
         }
@@ -206,14 +201,14 @@ namespace WebApiFile.Controllers
         {
             Random rnd = new Random();
             var newCode = rnd.Next(1000, 9999).ToString();
-            await _repository.Codes.AddAsync(new DB.Entities.CodeForDelete()
+            await _dataContext.CodesForDelete.AddAsync(new DB.Entities.CodeForDelete()
             {
                 FileId = id,
                 Code = newCode,
                 TimeTo = DateTime.UtcNow.AddMinutes(5)
             });
 
-            await _repository.SaveChangesAsync();
+            await _dataContext.SaveChangesAsync();
 
             //await _emailService.SendEmailAsync(newCode);
 
@@ -237,31 +232,17 @@ namespace WebApiFile.Controllers
         [HttpDelete("Delete")]
         public async Task<IActionResult> Delete(Guid fileId, string code)
         {
-            //var value = _codes.FirstOrDefault(x => x.Code == code);
-            //if (value == null) return BadRequest();
-
-            //var file = _repository.Files.Get(value.ID);
-            //if (file is null) return BadRequest();
-
-            //_repository.Files.Delete(file);
-            //_repository.SaveChanges();
-
-            //_codes.Remove(value);
-
-            var filesToDelete = await _repository.Codes.GetCodesById(fileId);
+            var filesToDelete = await _dataContext.CodesForDelete.Where(x => x.FileId == fileId).ToListAsync();
             if(filesToDelete != null && filesToDelete.Any(x => x.Code == code && x.TimeTo > DateTime.UtcNow))
             {
-                filesToDelete.ForEach(x =>
-                {
-                    _repository.Codes.Delete(x.ID.Value);
-                });
-                _repository.Files.Delete(fileId);
-                await _repository.SaveChangesAsync();
+                var filesId = filesToDelete.ConvertAll(x => x.ID);
+                await _dataContext.CodesForDelete.Where(x => filesId.Contains(x.ID)).ExecuteDeleteAsync();
+                await _dataContext.Files.Where(x => x.ID == fileId).ExecuteDeleteAsync();
+
                 return Ok($"Файл с указанным ID удален {DateTime.Now.ToLocalTime()}");
             }
 
             return BadRequest();
         }
-
     }
 }

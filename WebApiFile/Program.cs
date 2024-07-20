@@ -1,16 +1,12 @@
-using System;
-using System.IO;
-using System.Reflection;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.OpenApi.Models;
-using WebApiFile.DB.Repositories;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using WebApiFile.BasicAuthentication;
+using WebApiFile.DB;
+using WebApiFile.Models;
 using WebApiFile.Services;
 using WebApiFile.Services.Email;
-using WebApiFile.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,10 +52,6 @@ builder.Services.AddSwaggerGen(c =>
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseNpgsql(connection));
-
-builder.Services.AddScoped<Repository>();
-
-//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 
 builder.Services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
