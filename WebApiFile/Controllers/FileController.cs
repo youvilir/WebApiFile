@@ -47,7 +47,7 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.Developer, Role.Admin)]
-        [HttpPost("Upload")]
+        [HttpPost]
         public async Task<IActionResult> Upload(IFormFile file)
         {
             if (file is null) return BadRequest();
@@ -196,8 +196,8 @@ namespace WebApiFile.Controllers
             return Ok();
         }
 
-        [HttpDelete("DeleteRequest")]
-        public async Task<IActionResult> DeleteRequest(Guid id)
+        [HttpPost("SendCode")]
+        public async Task<IActionResult> SendCode(Guid id)
         {
             Random rnd = new Random();
             var newCode = rnd.Next(1000, 9999).ToString();
@@ -229,15 +229,15 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.Editor, Role.Admin)]
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> Delete(Guid fileId, string code)
+        [HttpDelete("{id}&{code}")]
+        public async Task<IActionResult> Delete(Guid id, string code)
         {
-            var filesToDelete = await _dataContext.CodesForDelete.Where(x => x.FileId == fileId).ToListAsync();
+            var filesToDelete = await _dataContext.CodesForDelete.Where(x => x.FileId == id).ToListAsync();
             if(filesToDelete != null && filesToDelete.Any(x => x.Code == code && x.TimeTo > DateTime.UtcNow))
             {
                 var filesId = filesToDelete.ConvertAll(x => x.ID);
                 await _dataContext.CodesForDelete.Where(x => filesId.Contains(x.ID)).ExecuteDeleteAsync();
-                await _dataContext.Files.Where(x => x.ID == fileId).ExecuteDeleteAsync();
+                await _dataContext.Files.Where(x => x.ID == id).ExecuteDeleteAsync();
 
                 return Ok($"Файл с указанным ID удален {DateTime.Now.ToLocalTime()}");
             }
