@@ -13,9 +13,12 @@ namespace WebApiFile.DB.Repositories
             _dataContext = dataContext;
 
             Files = new FileRepository(dataContext);
+            Codes = new CodeForDeleteRepository(dataContext);
         }
 
         public FileRepository Files { get; }
+
+        public CodeForDeleteRepository Codes { get; }
 
         public void SaveChanges()
         {

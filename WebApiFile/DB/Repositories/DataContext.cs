@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using WebApiFile.DB.Entities;
 using File = WebApiFile.DB.Entities.File;
 
 namespace WebApiFile.DB.Repositories
@@ -12,6 +13,8 @@ namespace WebApiFile.DB.Repositories
         }
 
         public DbSet<File> Files { get; set; }
+
+        public DbSet<CodeForDelete> CodesForDelete { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

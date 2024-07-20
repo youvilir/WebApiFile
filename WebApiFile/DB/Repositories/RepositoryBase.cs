@@ -48,7 +48,7 @@ namespace WebApiFile.DB.Repositories
             _dataContext.DetectChanges();
         }
 
-        public virtual void Delete(T entity)
+		public virtual void Delete(T entity)
         {
             Set.Remove(entity);
             _dataContext.DetectChanges();

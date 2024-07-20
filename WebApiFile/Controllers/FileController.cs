@@ -20,13 +20,20 @@ namespace WebApiFile.Controllers
         private readonly Repository _repository;
         private readonly IEmailService _emailService;
         private readonly List<DeleteFileModel> _codes;
+        private readonly DataContext _dataContext;
 
-        public FileController(ILogger<FileController> logger, Repository repository, IEmailService emailService, List<DeleteFileModel> codes)
+        public FileController(
+            ILogger<FileController> logger, 
+            Repository repository, 
+            IEmailService emailService, 
+            List<DeleteFileModel> codes,
+            DataContext dataContext)
         {
             _logger = logger;
             _repository = repository;
             _emailService = emailService;
             _codes = codes;
+            _dataContext = dataContext;
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.Developer, Role.Admin)]
         [HttpPost("Upload")]
-        public IActionResult Upload(IFormFile file)
+        public async Task<IActionResult> Upload(IFormFile file)
         {
             if (file is null) return BadRequest();
 
@@ -70,7 +77,7 @@ namespace WebApiFile.Controllers
             };
 
             _repository.Files.Add(data);
-            _repository.SaveChanges();
+            await _repository.SaveChangesAsync();
 
             return Ok();
         }
@@ -195,16 +202,22 @@ namespace WebApiFile.Controllers
         }
 
         [HttpDelete("DeleteRequest")]
-        public IActionResult DeleteRequest(Guid id)
+        public async Task<IActionResult> DeleteRequest(Guid id)
         {
             Random rnd = new Random();
-            var newVal = rnd.Next(1000, 9999).ToString();
-            _codes.Add(new DeleteFileModel { ID = id, Code = newVal});
+            var newCode = rnd.Next(1000, 9999).ToString();
+            await _repository.Codes.AddAsync(new DB.Entities.CodeForDelete()
+            {
+                FileId = id,
+                Code = newCode,
+                TimeTo = DateTime.UtcNow.AddMinutes(5)
+            });
 
-            _emailService.SendEmailAsync(newVal);
+            await _repository.SaveChangesAsync();
+
+            //await _emailService.SendEmailAsync(newCode);
 
             return Ok();
-
         }
 
         /// <summary>
@@ -222,20 +235,32 @@ namespace WebApiFile.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [Authorize(Role.Editor, Role.Admin)]
         [HttpDelete("Delete")]
-        public IActionResult Delete(string code)
+        public async Task<IActionResult> Delete(Guid fileId, string code)
         {
-            var value = _codes.FirstOrDefault(x => x.Code == code);
-            if (value == null) return BadRequest();
+            //var value = _codes.FirstOrDefault(x => x.Code == code);
+            //if (value == null) return BadRequest();
 
-            var file = _repository.Files.Get(value.ID);
-            if (file is null) return BadRequest();
+            //var file = _repository.Files.Get(value.ID);
+            //if (file is null) return BadRequest();
 
-            _repository.Files.Delete(file);
-            _repository.SaveChanges();
+            //_repository.Files.Delete(file);
+            //_repository.SaveChanges();
 
-            _codes.Remove(value);
+            //_codes.Remove(value);
 
-            return Ok($"Файл с указанным ID удален {DateTime.Now.ToLocalTime()}");
+            var filesToDelete = await _repository.Codes.GetCodesById(fileId);
+            if(filesToDelete != null && filesToDelete.Any(x => x.Code == code && x.TimeTo > DateTime.UtcNow))
+            {
+                filesToDelete.ForEach(x =>
+                {
+                    _repository.Codes.Delete(x.ID.Value);
+                });
+                _repository.Files.Delete(fileId);
+                await _repository.SaveChangesAsync();
+                return Ok($"Файл с указанным ID удален {DateTime.Now.ToLocalTime()}");
+            }
+
+            return BadRequest();
         }
 
     }
