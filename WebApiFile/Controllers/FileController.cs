@@ -33,16 +33,16 @@ namespace WebApiFile.Controllers
         }
 
         /// <summary>
-        /// Загрузка файла на сервер
+        /// Р—Р°РіСЂСѓР·РєР° С„Р°Р№Р»Р° РЅР° СЃРµСЂРІРµСЂ
         /// </summary>
         /// <remarks>
-        /// Загрузка файла
+        /// Р—Р°РіСЂСѓР·РєР° С„Р°Р№Р»Р°
         /// </remarks>
-        /// <param name="file">Файл для загрузки</param>
-        /// <response code="200">Файл успешно загружен</response>
-        /// <response code="400">Файл не найден</response>
-        /// <response code="400">Ошибка валидации</response>
-        /// <response code="500">Ошибка сервера</response>
+        /// <param name="file">Р¤Р°Р№Р» РґР»СЏ Р·Р°РіСЂСѓР·РєРё</param>
+        /// <response code="200">Р¤Р°Р№Р» СѓСЃРїРµС€РЅРѕ Р·Р°РіСЂСѓР¶РµРЅ</response>
+        /// <response code="400">Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ</response>
+        /// <response code="400">РћС€РёР±РєР° РІР°Р»РёРґР°С†РёРё</response>
+        /// <response code="500">РћС€РёР±РєР° СЃРµСЂРІРµСЂР°</response>
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
@@ -53,7 +53,7 @@ namespace WebApiFile.Controllers
             if (file is null) return BadRequest();
 
             if (file.FileName.Length > 100)
-                return BadRequest("Длинна файла не может быть больше 100 символов");
+                return BadRequest("Р”Р»РёРЅРЅР° С„Р°Р№Р»Р° РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ 100 СЃРёРјРІРѕР»РѕРІ");
 
             byte[] fileData = null;
 
@@ -101,15 +101,15 @@ namespace WebApiFile.Controllers
         }
 
         /// <summary>
-        /// Скачивание файла
+        /// РЎРєР°С‡РёРІР°РЅРёРµ С„Р°Р№Р»Р°
         /// </summary>
         /// <remarks>
-        /// Скачивание файла
+        /// РЎРєР°С‡РёРІР°РЅРёРµ С„Р°Р№Р»Р°
         /// </remarks>
-        /// <param name="id">ID файла (Guid)</param>
-        /// <response code="200">Файл успешно отправлен</response>
-        /// <response code="400">Файл не найден</response>
-        /// <response code="500">Ошибка сервера</response>
+        /// <param name="id">ID С„Р°Р№Р»Р° (Guid)</param>
+        /// <response code="200">Р¤Р°Р№Р» СѓСЃРїРµС€РЅРѕ РѕС‚РїСЂР°РІР»РµРЅ</response>
+        /// <response code="400">Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ</response>
+        /// <response code="500">РћС€РёР±РєР° СЃРµСЂРІРµСЂР°</response>
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
@@ -127,15 +127,15 @@ namespace WebApiFile.Controllers
         }
 
         /// <summary>
-        /// Получение метаданных файла
+        /// РџРѕР»СѓС‡РµРЅРёРµ РјРµС‚Р°РґР°РЅРЅС‹С… С„Р°Р№Р»Р°
         /// </summary>
         /// <remarks>
-        /// Получение метаданных файла
+        /// РџРѕР»СѓС‡РµРЅРёРµ РјРµС‚Р°РґР°РЅРЅС‹С… С„Р°Р№Р»Р°
         /// </remarks>
-        /// <param name="id">ID файла (Guid)</param>
-        /// <response code="200">Метаданные успешно отправлен</response>
-        /// <response code="400">Файл не найден</response>
-        /// <response code="500">Ошибка сервера</response>
+        /// <param name="id">ID С„Р°Р№Р»Р° (Guid)</param>
+        /// <response code="200">РњРµС‚Р°РґР°РЅРЅС‹Рµ СѓСЃРїРµС€РЅРѕ РѕС‚РїСЂР°РІР»РµРЅ</response>
+        /// <response code="400">Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ</response>
+        /// <response code="500">РћС€РёР±РєР° СЃРµСЂРІРµСЂР°</response>
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
@@ -144,7 +144,7 @@ namespace WebApiFile.Controllers
         public async Task<IActionResult> GetMetaData(Guid id)
         {
             var file = await _dataContext.Files.FindAsync(id);
-			if (file is null) return BadRequest("Файл не найден");
+			if (file is null) return BadRequest("Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ");
 
             return Ok(new FileMetaData()
             {
@@ -157,17 +157,17 @@ namespace WebApiFile.Controllers
         }
 
         /// <summary>
-        /// Изменение файла
+        /// РР·РјРµРЅРµРЅРёРµ С„Р°Р№Р»Р°
         /// </summary>
         /// <remarks>
-        /// Изменение имени файла
+        /// РР·РјРµРЅРµРЅРёРµ РёРјРµРЅРё С„Р°Р№Р»Р°
         /// </remarks>
-        /// <param name="id">ID файла (Guid)</param>
-        /// <param name="newName">Новое имя файла</param>
-        /// <response code="200">Файл успешно изменен</response>
-        /// <response code="400">Файл не найден</response>
-        /// <response code="400">Ошибка валидации</response>
-        /// <response code="500">Ошибка сервера</response>
+        /// <param name="id">ID С„Р°Р№Р»Р° (Guid)</param>
+        /// <param name="newName">РќРѕРІРѕРµ РёРјСЏ С„Р°Р№Р»Р°</param>
+        /// <response code="200">Р¤Р°Р№Р» СѓСЃРїРµС€РЅРѕ РёР·РјРµРЅРµРЅ</response>
+        /// <response code="400">Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ</response>
+        /// <response code="400">РћС€РёР±РєР° РІР°Р»РёРґР°С†РёРё</response>
+        /// <response code="500">РћС€РёР±РєР° СЃРµСЂРІРµСЂР°</response>
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
@@ -176,7 +176,7 @@ namespace WebApiFile.Controllers
         public async Task<IActionResult> Change(Guid id, string newName)
         {
             if (newName.Length > 100)
-                return BadRequest("Длинна файла не может быть больше 100 символов");
+                return BadRequest("Р”Р»РёРЅРЅР° С„Р°Р№Р»Р° РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ 100 СЃРёРјРІРѕР»РѕРІ");
 
             var file = await _dataContext.Files.FindAsync(id);
             if (file is null) return BadRequest();
@@ -216,15 +216,15 @@ namespace WebApiFile.Controllers
         }
 
         /// <summary>
-        /// Удаление файла
+        /// РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р°
         /// </summary>
         /// <remarks>
-        /// Удаление файла
+        /// РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р°
         /// </remarks>
-        /// <param name="id">ID файла (Guid)</param>
-        /// <response code="200">Файл успешно удален</response>
-        /// <response code="400">Файл не найден</response>
-        /// <response code="500">Ошибка сервера</response>
+        /// <param name="id">ID С„Р°Р№Р»Р° (Guid)</param>
+        /// <response code="200">Р¤Р°Р№Р» СѓСЃРїРµС€РЅРѕ СѓРґР°Р»РµРЅ</response>
+        /// <response code="400">Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ</response>
+        /// <response code="500">РћС€РёР±РєР° СЃРµСЂРІРµСЂР°</response>
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
@@ -239,7 +239,7 @@ namespace WebApiFile.Controllers
                 await _dataContext.CodesForDelete.Where(x => filesId.Contains(x.ID)).ExecuteDeleteAsync();
                 await _dataContext.Files.Where(x => x.ID == id).ExecuteDeleteAsync();
 
-                return Ok($"Файл с указанным ID удален {DateTime.Now.ToLocalTime()}");
+                return Ok($"Р¤Р°Р№Р» СЃ СѓРєР°Р·Р°РЅРЅС‹Рј ID СѓРґР°Р»РµРЅ {DateTime.Now.ToLocalTime()}");
             }
 
             return BadRequest();

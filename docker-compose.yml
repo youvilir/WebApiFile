@@ -1,0 +1,32 @@
+version: "3.9"
+networks:
+  web-api-file:
+    driver: bridge
+services:
+  app: 
+    container_name: web-api-file
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - web-api-file
+    depends_on:
+      - postgres_db
+  postgres_db:
+    container_name: postgres
+    image: postgres:10
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123qweQWE
+      POSTGRES_DB: Files
+      PGPORT: 5433
+    ports:
+      - "5433:5433"
+    networks:
+      - web-api-file
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data: {}
